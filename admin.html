@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kamakhyaguri Ramkrishna Sishu Udyan - School Management System</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for ID Card -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- PDF Generation Libraries (jsPDF & AutoTable) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Firebase SDKs (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <!-- Custom External CSS -->
+    <link rel="stylesheet" href="admin-style.css">
+
+    <style>
+        /* ID Card Custom CSS Integration */
+        .id-card-preview-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .id-card {
+            width: 450px;
+            height: 280px;
+            background-color: #c8faeebe;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            border: 1px solid #002b5b;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .id-card * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header Section */
+        .id-card .header {
+            background-color: #0b3c6d;
+            color: #ffffff;
+            text-align: center;
+            padding: 5px 8px 3px 8px;
+        }
+
+        .id-card .header h1 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            word-spacing: 1px;
+            text-transform: uppercase;
+            line-height: 1.1;
+            color: #ffffff;
+        }
+
+        .id-card .header p {
+            font-size: 8.5px;
+            font-weight: 700;
+            margin-top: 3px;
+            color: #dbeafe;
+            letter-spacing: 0.2px;
+        }
+
+        /* Banner Strip */
+        .id-card .card-title-strip {
+            background: linear-gradient(180deg, #a21caf 0%, #86198f 100%);
+            color: #ffffff;
+            text-align: center;
+            padding: 3px 0;
+            border-top: 1.5px solid #ffffff;
+            border-bottom: 1.5px solid #ffffff;
+        }
+
+        .id-card .card-title-strip h2 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            word-spacing: 2px;
+            color: #ffffff;
+        }
+
+        /* Main Content Layout */
+        .id-card .card-body {
+            display: flex;
+            padding: 8px 12px 0px 12px;
+            flex-grow: 1;
+            align-items: flex-start;
+        }
+
+        /* Left Side (Logo & Photo) */
+        .id-card .left-section {
+            width: 32%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-right: 5px;
+        }
+
+        .id-card .logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 5px;
+        }
+
+        .id-card .photo-container {
+            width: 92px;
+            height: 110px;
+            border: 3.5px solid #d9f99d;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #f1f5f9;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+
+        .id-card .student-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Right Side (Details List) */
+        .id-card .right-section {
+            width: 68%;
+            padding-left: 5px;
+            padding-top: 2px;
+        }
+
+        .id-card .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11.5px;
+        }
+
+        .id-card .info-table tr {
+            line-height: 1.35;
+        }
+
+        .id-card .info-table td {
+            padding: 2.5px 0;
+            vertical-align: top;
+        }
+
+        .id-card .info-table td.label {
+            width: 40%;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .id-card .info-table td.colon {
+            width: 5%;
+            font-weight: 700;
+            color: #111827;
+            text-align: center;
+        }
+
+        .id-card .info-table td.value {
+            width: 55%;
+            font-weight: 700;
+        }
+
+        /* Text Colors */
+        .id-card .val-red {
+            color: #dc2626;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .id-card .val-blue {
+            color: #032b56;
+            font-weight: 700;
+        }
+
+        /* Footer Section */
+        .id-card .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 14px 8px 14px;
+        }
+
+        .id-card .contact-info {
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .id-card .contact-info span {
+            color: #032b56;
+        }
+
+        .id-card .signature-section {
+            text-align: center;
+            width: 90px;
+        }
+
+        .id-card .signature-text {
+            font-family: 'Brush Script MT', 'cursive', sans-serif;
+            font-size: 15px;
+            color: #1e293b;
+            display: block;
+            margin-bottom: -3px;
+        }
+
+        .id-card .principal-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: #dc2626;
+            border-top: 1px solid #475569;
+            padding-top: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- AUTHENTICATION LOGIN OVERLAY -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-card">
+            <i class="fa-solid fa-graduation-cap" style="font-size: 38px; color: #0284c7; margin-bottom: 10px;"></i>
+            <h3>KRSU SCHOOL SYSTEM</h3>
+            <p>Authorized Admin Login</p>
+            <div class="form-group">
+                <label><i class="fa-solid fa-envelope"></i> Email Address</label>
+                <input type="email" id="login-email" placeholder="Enter admin email" onkeypress="handleKeyPress(event)">
+            </div>
+            <div class="form-group">
+                <label><i class="fa-solid fa-key"></i> Password</label>
+                <input type="password" id="login-password" placeholder="Enter password" onkeypress="handleKeyPress(event)">
+            </div>
+            <button class="login-btn" onclick="handleLogin()"><i class="fa-solid fa-right-to-bracket"></i> Login to System</button>
+            <div id="login-error" class="login-error">Invalid Email or Password!</div>
+        </div>
+    </div>
+
+    <!-- DEEP BLUE SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-brand"><i class="fa-solid fa-graduation-cap"></i> KRSU SCHOOL SYSTEM</div>
+        <div class="sidebar-menu-title">Main Dashboard</div>
+        <ul class="sidebar-menu">
+            <li><a id="nav-dash" onclick="openPage('dashboard')" class="active"><i class="fa-solid fa-gauge"></i> Dashboard</a></li>
+        </ul>
+        <div class="sidebar-menu-title">Student Management</div>
+        <ul class="sidebar-menu">
+            <li><a id="nav-student" onclick="openPage('student')"><i class="fa-solid fa-users"></i> Student Profile List</a></li>
+            <li><a id="nav-new" onclick="openPage('new')"><i class="fa-solid fa-user-plus"></i> New Student Registration</a></li>
+            <li><a href="attendance.html"><i class="fa-solid fa-calendar-check" style="color: #10b981;"></i> Daily Attendance</a></li>
+        </ul>
+        <div class="sidebar-menu-title">Fee Management</div>
+        <ul class="sidebar-menu">
+            <li><a id="nav-fee" onclick="openPage('fee')"><i class="fa-solid fa-indian-rupee-sign"></i> Fee Collection</a></li>
+            <li><a id="nav-tx-history" onclick="openPage('tx-history')"><i class="fa-solid fa-clock-rotate-left"></i> Transaction History</a></li>
+        </ul>
+        <div class="sidebar-menu-title">Exam & Academic Cards</div>
+        <ul class="sidebar-menu">
+            <li><a id="nav-marks" onclick="openPage('marks')"><i class="fa-solid fa-file-pen"></i> Marks Entry Form</a></li>
+            <li><a id="nav-cards" onclick="openPage('cards')"><i class="fa-solid fa-id-card"></i> Admit / ID Cards</a></li>
+        </ul>
+        <div class="sidebar-menu-title">Account</div>
+        <ul class="sidebar-menu">
+            <li><a onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket" style="color:#ef4444;"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <!-- MAIN WORKSPACE -->
+    <div class="main-wrapper">
+        <div class="top-header">
+            <div class="top-header-title">
+                <h2>KAMAKHYAGURI RAMKRISHNA SISHU UDYAN</h2>
+                <p>Debenbabur Chowpathi :: Kamakhyaguri :: Alipurduar</p>
+            </div>
+            <div class="top-header-info">
+                <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Home</a>
+                <div class="info-box"><i class="fa-solid fa-clock" style="color:#0284c7;"></i> <span id="live-clock">00:00:00 AM</span></div>
+                <div class="info-box"><i class="fa-solid fa-calendar-days" style="color:#0284c7;"></i> <span id="live-date">13-09-2026</span></div>
+                <div class="info-box" style="background:#e0f2fe; color:#0369a1;"><i class="fa-solid fa-wifi" id="sync-icon"></i> <b id="sync-status">Firebase Live</b></div>
+            </div>
+        </div>
+
+        <div class="content-container">
+
+            <!-- DASHBOARD VIEW -->
+            <div id="view-dashboard" class="page-view">
+                <div class="dash-top-bar">
+                    <div class="section-heading"><i class="fa-solid fa-gauge"></i> SYSTEM OVERVIEW</div>
+                    <div class="academic-btn">Session : 2026-2027</div>
+                </div>
+                <div class="quick-grid">
+                    <div class="quick-card" onclick="openPage('new')"><i class="fa-solid fa-user-plus" style="color:#2563eb;"></i><span>NEW ADMISSION</span></div>
+                    <div class="quick-card" onclick="openPage('student')"><i class="fa-solid fa-users" style="color:#16a34a;"></i><span>STUDENT LIST</span></div>
+                    <div class="quick-card" onclick="window.location.href='attendance.html'"><i class="fa-solid fa-calendar-check" style="color:#10b981;"></i><span>ATTENDANCE</span></div>
+                    <div class="quick-card" onclick="openPage('fee')"><i class="fa-solid fa-indian-rupee-sign" style="color:#d97706;"></i><span>FEE COLLECTION</span></div>
+                    <div class="quick-card" onclick="openPage('marks')"><i class="fa-solid fa-file-pen" style="color:#9333ea;"></i><span>MARKS ENTRY</span></div>
+                    <div class="quick-card" onclick="openPage('cards')"><i class="fa-solid fa-id-card" style="color:#0891b2;"></i><span>PREVIEW CARDS</span></div>
+                </div>
+
+                <div class="summary-grid">
+                    <div class="sum-card" style="background: #eff6ff;">
+                        <div class="sum-icon" style="background: #2563eb;"><i class="fa-solid fa-users"></i></div>
+                        <div class="sum-details"><h3 id="dash-total-students">0</h3><p>TOTAL STUDENTS</p></div>
+                    </div>
+                    <div class="sum-card" style="background: #f0fdf4; cursor: pointer;" onclick="window.location.href='attendance.html'">
+                        <div class="sum-icon" style="background: #16a34a;"><i class="fa-solid fa-user-check"></i></div>
+                        <div class="sum-details"><h3 id="dash-today-present">0 / 0</h3><p>TODAY STUDENT PRESENT</p></div>
+                    </div>
+                    <div class="sum-card" style="background: #fdf4ff;">
+                        <div class="sum-icon" style="background: #d97706;"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                        <div class="sum-details"><h3 id="dash-today-collection">₹ 0.00</h3><p>TOTAL FEES COLLECTED</p></div>
+                    </div>
+                </div>
+
+                <div class="section-heading"><i class="fa-solid fa-graduation-cap"></i> CLASS-WISE STUDENT COUNT</div>
+                <div class="class-summary-grid">
+                    <div class="class-card"><h4>Nursery</h4><span id="cnt-nursery">0</span></div>
+                    <div class="class-card"><h4>LKG</h4><span id="cnt-lkg">0</span></div>
+                    <div class="class-card"><h4>UKG</h4><span id="cnt-ukg">0</span></div>
+                    <div class="class-card"><h4>Std-1</h4><span id="cnt-std1">0</span></div>
+                    <div class="class-card"><h4>Std-2</h4><span id="cnt-std2">0</span></div>
+                    <div class="class-card"><h4>Std-3</h4><span id="cnt-std3">0</span></div>
+                    <div class="class-card"><h4>Std-4</h4><span id="cnt-std4">0</span></div>
+                    <div class="class-card"><h4>Std-5</h4><span id="cnt-std5">0</span></div>
+                </div>
+            </div>
+
+            <!-- STUDENT LIST PAGE -->
+            <div id="view-student" class="page-view" style="display: none;">
+                <div class="form-card">
+                    <div class="card-header">
+                        <span><i class="fa-solid fa-users"></i> Registered Students Profile Database</span>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="btn btn-excel" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+                            <button class="btn btn-pdf" onclick="exportStudentListPDF()"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+                            <button class="btn btn-save" onclick="openPage('new')"><i class="fa-solid fa-plus"></i> Add New Student</button>
+                            <button class="btn btn-danger" onclick="deleteAllStudents()"><i class="fa-solid fa-trash-can"></i> Delete All Students</button>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding:0;">
+                        <table class="custom-table" id="student-list-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Student Name</th>
+                                    <th>Class</th>
+                                    <th>Section</th>
+                                    <th>Roll No</th>
+                                    <th>Father's Name</th>
+                                    <th>Contact</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="student-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEW ADMISSION & EDIT STUDENT FORM -->
+            <div id="view-new" class="page-view" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                    <div class="section-heading" id="form-heading"><i class="fa-solid fa-user-plus"></i> STUDENT ADMISSION & UPDATE FORM</div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <input type="file" id="bulk-csv-input" accept=".csv" style="display: none;" onchange="importBulkCSV(event)">
+                        <button class="btn btn-excel" style="background-color: #10b981;" onclick="document.getElementById('bulk-csv-input').click()"><i class="fa-solid fa-file-csv"></i> Bulk CSV Import</button>
+                        <button class="btn btn-excel" onclick="exportCurrentFormExcel()"><i class="fa-solid fa-file-excel"></i> Export Details Excel</button>
+                        <button class="btn btn-pdf" onclick="exportCurrentFormPDF()"><i class="fa-solid fa-file-pdf"></i> Export Form PDF</button>
+                        <button class="btn btn-nav" onclick="navigateStudent('first')">&laquo; First</button>
+                        <button class="btn btn-nav" onclick="navigateStudent('prev')">&lt; Prev</button>
+                        <button class="btn btn-nav" onclick="navigateStudent('next')">Next &gt;</button>
+                        <button class="btn btn-nav" onclick="navigateStudent('last')">Last &raquo;</button>
+                    </div>
+                </div>
+
+                <div class="grid-layout">
+                    <div class="form-card">
+                        <div class="card-header"><span><i class="fa-solid fa-user"></i> Basic Profile Details</span></div>
+                        <div class="card-body">
+                            <div class="form-group"><label>Student ID</label><input type="text" id="studentId" readonly style="background:#e2e8f0; font-weight:bold;"></div>
+                            <div class="form-group"><label>Student Name</label><input type="text" id="name" required></div>
+                            <div class="form-group"><label>Gender</label><select id="gender"><option value="Boy">Boy</option><option value="Girl">Girl</option></select></div>
+                            <div class="form-group"><label>Date of Birth</label><input type="date" id="dob"></div>
+                            <div class="form-group"><label>Caste</label><select id="caste"><option value="General">General</option><option value="SC">SC</option><option value="ST">ST</option><option value="OBC">OBC</option></select></div>
+                            <div class="form-group"><label>CWSN</label><select id="cwsn"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                            <div class="form-group">
+                                <label>Blood Group</label>
+                                <select id="bloodGroup">
+                                    <option value="NA">NA</option><option value="A+">A+</option><option value="A-">A-</option>
+                                    <option value="B+">B+</option><option value="B-">B-</option><option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option><option value="O+">O+</option><option value="O-">O-</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><label>Height (cm)</label><input type="number" id="height"></div>
+                            <div class="form-group"><label>Weight (kg)</label><input type="number" id="weight"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <div class="card-header"><span><i class="fa-solid fa-location-dot"></i> Address Details</span></div>
+                        <div class="card-body">
+                            <div class="form-group"><label>Village</label><input type="text" id="village"></div>
+                            <div class="form-group"><label>Post Office</label><input type="text" id="postOffice"></div>
+                            <div class="form-group"><label>Gram Panchayat</label><input type="text" id="gp"></div>
+                            <div class="form-group"><label>Block</label><input type="text" id="block"></div>
+                            <div class="form-group"><label>Police Station</label><input type="text" id="ps"></div>
+                            <div class="form-group"><label>District</label><input type="text" id="district" value=""></div>
+                            <div class="form-group"><label>PIN Code</label><input type="text" id="pin"></div>
+                            <div class="form-group"><label>Contact No</label><input type="text" id="contact"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-layout">
+                    <div>
+                        <div class="form-card" style="margin-bottom: 15px;">
+                            <div class="card-header"><span><i class="fa-solid fa-image"></i> Student Photo Upload</span></div>
+                            <div class="card-body photo-container">
+                                <div class="photo-preview">
+                                    <span id="photo-text">Photo Preview</span>
+                                    <img id="preview-img" src="" alt="Student Photo">
+                                </div>
+                                <input type="file" id="photo-input" accept="image/*" style="display: none;" onchange="previewFile()">
+                                <button type="button" class="btn btn-print" onclick="document.getElementById('photo-input').click()"><i class="fa-solid fa-upload"></i> Upload Image</button>
+                            </div>
+                        </div>
+
+                        <div class="form-card">
+                            <div class="card-header"><span><i class="fa-solid fa-graduation-cap"></i> Academic Admission</span></div>
+                            <div class="card-body">
+                                <div class="form-group"><label>Admission Date</label><input type="date" id="admissionDate"></div>
+                                <div class="form-group">
+                                    <label>Class</label>
+                                    <select id="studentClass">
+                                        <option value="Nursery">Nursery</option><option value="LKG">LKG</option><option value="UKG">UKG</option>
+                                        <option value="Std-1">Std-1</option><option value="Std-2">Std-2</option><option value="Std-3">Std-3</option>
+                                        <option value="Std-4">Std-4</option><option value="Std-5">Std-5</option>
+                                    </select>
+                                </div>
+                                <div class="form-group"><label>Section</label><select id="section"><option value="A">A</option><option value="B">B</option></select></div>
+                                <div class="form-group"><label>Roll No</label><input type="text" id="rollNo"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="form-card" style="margin-bottom: 15px;">
+                            <div class="card-header"><span><i class="fa-solid fa-users"></i> Guardian Information</span></div>
+                            <div class="card-body">
+                                <div class="form-group"><label>Father's Name</label><input type="text" id="fatherName"></div>
+                                <div class="form-group"><label>Mother's Name</label><input type="text" id="motherName"></div>
+                                <div class="form-group"><label>Guardian Name</label><input type="text" id="guardianName"></div>
+                                <div class="form-group"><label>Annual Income</label><input type="text" id="income"></div>
+                                <div class="form-group"><label>Edu. Qualification</label><input type="text" id="qualification"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-card">
+                            <div class="card-header"><span><i class="fa-solid fa-id-card"></i> Other Registration Details</span></div>
+                            <div class="card-body">
+                                <div class="form-group"><label>PEN No</label><input type="text" id="pen"></div>
+                                <div class="form-group"><label>Birth Cert. No</label><input type="text" id="birthCert"></div>
+                                <div class="form-group"><label>Previous School</label><input type="text" id="prevSchool"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-save" onclick="saveStudent()"><i class="fa-solid fa-floppy-disk"></i> Save / Update Record</button>
+                    <button type="button" class="btn btn-excel" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> Export All Database Excel</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteAllStudents()"><i class="fa-solid fa-trash-can"></i> Delete All Student Details</button>
+                </div>
+            </div>
+
+            <!-- FEE COLLECTION PAGE -->
+            <div id="view-fee" class="page-view" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div class="section-heading"><i class="fa-solid fa-indian-rupee-sign"></i> FEE COLLECTION ENTRY FORM</div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-nav" onclick="navigateFeeRecord('prev')">&lt; Prev Receipt</button>
+                        <button class="btn btn-nav" onclick="navigateFeeRecord('next')">Next Receipt &gt;</button>
+                        <button class="btn btn-save" onclick="resetFeeForm()"><i class="fa-solid fa-plus"></i> Clear / New Form</button>
+                    </div>
+                </div>
+
+                <div class="fee-top-bar">
+                    <div>Date: <input type="date" id="fee-date"></div>
+                    <div>ReceiptNo: <input type="text" id="fee-receipt-no" readonly style="width: 130px; background: #e2e8f0;"></div>
+                    <div style="display: flex; align-items: center; gap: 5px; flex-grow: 1;">
+                        <b>Name:</b>
+                        <div class="autocomplete-wrapper">
+                            <input type="text" id="fee-search-name" placeholder="Type student name to search..." onkeyup="autoSearchStudent(this.value)" autocomplete="off">
+                            <div id="autocomplete-list" class="autocomplete-results" style="display: none;"></div>
+                        </div>
+                    </div>
+                    <div>Class: <input type="text" id="fee-class" readonly style="width: 60px;"></div>
+                    <div>Sec: <input type="text" id="fee-sec" readonly style="width: 35px;"></div>
+                    <div>Roll: <input type="text" id="fee-roll" readonly style="width: 40px;"></div>
+                </div>
+
+                <div class="fee-container-grid">
+                    <div class="fee-panel">
+                        <div style="font-size: 11px; font-weight: bold; margin-bottom: 5px; color: #1e3a8a;">PAID MONTHS RECORD</div>
+                        <div class="month-row"><label>January</label><input type="text" id="m-January" value="₹0.00" readonly></div>
+                        <div class="month-row"><label>February</label><input type="text" id="m-February" value="₹0.00" readonly></div>
+                        <div class="month-row"><label>March</label><input type="text" id="m-March" value="₹0.00" readonly></div>
+                        <div class="month-row"><label>April</label><input type="text" id="m-April" value="₹0.00" readonly></div>
+                        <div class="month-row"><label>May</label><input type="text" id="m-May" value="₹0.00" readonly></div>
+                        <div class="month-row"><label>June</label><input type="text" id="m-June" value="₹0.00" readonly></div>
+                        <div class="month-row"><label>July</label><input type="text" id="m-July" value="₹0.00" readonly></div>
+                        <div class="month-row"><label>August</label><input type="text" id="m-August" value="₹0.00" readonly></div>
+                        <div class="month-row"><label>September</label><input type="text" id="m-September" value="₹0.00" readonly></div>
+                        <div class="month-row"><label>October</label><input type="text" id="m-October" value="₹0.00" readonly></div>
+                        <div class="month-row"><label>November</label><input type="text" id="m-November" value="₹0.00" readonly></div>
+                        <div class="month-row"><label>December</label><input type="text" id="m-December" value="₹0.00" readonly></div>
+                    </div>
+
+                    <div class="fee-panel" style="background: #fff5f5;">
+                        <div style="font-size: 11px; font-weight: bold; margin-bottom: 5px; color: #991b1b;">FEE CALCULATION</div>
+                        <div class="fee-calc-row">
+                            <label>Fee Month</label>
+                            <select id="fc-month">
+                                <option>January</option><option>February</option><option>March</option>
+                                <option>April</option><option>May</option><option>June</option>
+                                <option>July</option><option>August</option><option>September</option>
+                                <option>October</option><option>November</option><option>December</option>
+                            </select>
+                        </div>
+                        <div class="fee-calc-row"><label>Monthly Fee</label><input type="number" id="fc-monthly" value="500" oninput="calculateFeeGrandTotal()"></div>
+                        <div class="fee-calc-row"><label>Admission Fee</label><input type="number" id="fc-admission" value="0" oninput="calculateFeeGrandTotal()"></div>
+                        <div class="fee-calc-row"><label>Text Book</label><input type="number" id="fc-textbook" value="0" oninput="calculateFeeGrandTotal()"></div>
+                        <div class="fee-calc-row"><label>Exercise Book</label><input type="number" id="fc-exercise" value="0" oninput="calculateFeeGrandTotal()"></div>
+                        <div class="fee-calc-row"><label>Tie Belt</label><input type="number" id="fc-tiebelt" value="0" oninput="calculateFeeGrandTotal()"></div>
+                        <div class="fee-calc-row"><label>Exam Fee</label><input type="number" id="fc-exam" value="0" oninput="calculateFeeGrandTotal()"></div>
+                        <div class="fee-calc-row"><label>Fine</label><input type="number" id="fc-fine" value="0" oninput="calculateFeeGrandTotal()"></div>
+                        <div class="fee-calc-row"><label>Discount</label><input type="number" id="fc-discount" value="0" oninput="calculateFeeGrandTotal()"></div>
+                        <div class="fee-calc-row"><label>Grand Total</label><input type="text" id="fc-grandtotal" value="₹500.00" readonly style="background:#e2e8f0;"></div>
+                        <div class="fee-calc-row"><label>Total Paid</label><input type="number" id="fc-totalpaid" value="500"></div>
+                        <div class="fee-calc-row"><label>Remarks</label><input type="text" id="fc-remarks" style="text-align: left;"></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px;">
+                    <button class="btn btn-save" onclick="saveFeeRecord()"><i class="fa-solid fa-floppy-disk"></i> Save Fee Record</button>
+                    <button class="btn btn-print" onclick="printReceipt()"><i class="fa-solid fa-print"></i> Print A4 Dual Receipt (2x A5)</button>
+                </div>
+
+                <div class="form-card">
+                    <div class="card-header">
+                        <span><i class="fa-solid fa-list"></i> Transaction History</span>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-excel" onclick="exportFeeToExcel()"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+                            <button class="btn btn-pdf" onclick="exportFeeHistoryPDF()"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding:0;">
+                        <table class="custom-table" id="fee-history-table">
+                            <thead>
+                                <tr>
+                                    <th>Receipt No</th>
+                                    <th>Date</th>
+                                    <th>Student Name</th>
+                                    <th>Class</th>
+                                    <th>Month</th>
+                                    <th>Paid Amount</th>
+                                    <th>Remarks</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fee-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STUDENT TRANSACTION HISTORY PAGE VIEW -->
+            <div id="view-tx-history" class="page-view" style="display: none;">
+                <div class="form-card">
+                    <div class="card-header">
+                        <span><i class="fa-solid fa-clock-rotate-left"></i> Student Transaction History</span>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
+                            <div class="form-group" style="max-width: 350px; flex-grow: 1;">
+                                <label><b>Search Student Name:</b></label>
+                                <div class="autocomplete-wrapper">
+                                    <input type="text" id="tx-search-name" placeholder="Type name to search..." onkeyup="autoSearchTxStudent(this.value)" autocomplete="off">
+                                    <div id="tx-autocomplete-list" class="autocomplete-results" style="display: none;"></div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="max-width: 350px; flex-grow: 1;">
+                                <label><b>Or Select Student Dropdown:</b></label>
+                                <select id="tx-student-select" onchange="onTxStudentSelectChange()"></select>
+                            </div>
+                        </div>
+
+                        <div id="tx-student-info" style="background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 15px; display: none;">
+                            <div style="display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px;">
+                                <div><b>Student ID:</b> <span id="tx-info-id">-</span></div>
+                                <div><b>Name:</b> <span id="tx-info-name">-</span></div>
+                                <div><b>Class:</b> <span id="tx-info-class">-</span></div>
+                                <div><b>Section:</b> <span id="tx-info-sec">-</span></div>
+                                <div><b>Roll No:</b> <span id="tx-info-roll">-</span></div>
+                            </div>
+                        </div>
+
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Receipt No</th>
+                                    <th>Date</th>
+                                    <th>Month</th>
+                                    <th>Paid Amount (₹)</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody id="student-tx-tbody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #64748b;">Please select or search a student above.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MARKS ENTRY VIEW WITH BULK CSV UPLOAD & DOWNLOAD OPTIONS -->
+            <div id="view-marks" class="page-view" style="display: none;">
+                <div class="form-card">
+                    <div class="card-header">
+                        <span><i class="fa-solid fa-file-pen"></i> Marks Entry & Result Management System</span>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <input type="file" id="bulk-marks-csv-input" accept=".csv" style="display: none;" onchange="importBulkMarksCSV(event)">
+                            <button class="btn btn-excel" style="background-color: #0284c7;" onclick="downloadMarksCSVTemplate()"><i class="fa-solid fa-file-csv"></i> Download CSV Template</button>
+                            <button class="btn btn-excel" style="background-color: #10b981;" onclick="document.getElementById('bulk-marks-csv-input').click()"><i class="fa-solid fa-file-csv"></i> Upload Marks CSV</button>
+                            <button class="btn btn-excel" onclick="exportMarksheetExcel()"><i class="fa-solid fa-file-excel"></i> Download Excel</button>
+                            <button class="btn btn-pdf" onclick="exportMarksheetPDF()"><i class="fa-solid fa-file-pdf"></i> Download Exam PDF</button>
+                            <button class="btn btn-pdf" style="background-color: #7e22ce;" onclick="generateCombinedMarksheetPDF()"><i class="fa-solid fa-file-invoice"></i> Download Single Marksheet PDF</button>
+                            <button class="btn btn-pdf" style="background-color: #059669;" onclick="generateBulkClassMarksheetsPDF()"><i class="fa-solid fa-file-pdf"></i> Download Bulk Class Marksheets (PDF)</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid-layout">
+                            <div class="form-group">
+                                <label>Select Class</label>
+                                <select id="marks-class-select" onchange="onClassChange()">
+                                    <option value="Nursery">Nursery</option>
+                                    <option value="LKG">LKG</option>
+                                    <option value="UKG">UKG</option>
+                                    <option value="Std-1">Std-1</option>
+                                    <option value="Std-2">Std-2</option>
+                                    <option value="Std-3">Std-3</option>
+                                    <option value="Std-4">Std-4</option>
+                                    <option value="Std-5">Std-5</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Select Student</label>
+                                <select id="marks-student-select" onchange="onStudentOrExamChange()"></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Exam Type</label>
+                                <select id="marks-exam-type" onchange="onStudentOrExamChange()">
+                                    <option value="Unit Test - 1">Unit Test - 1 (Max: 20 Marks)</option>
+                                    <option value="Unit Test - 2">Unit Test - 2 (Max: 30 Marks)</option>
+                                    <option value="Unit Test - 3">Unit Test - 3 (Max: 50 Marks / PT + WE: 100 Marks)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="background: #f1f5f9; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); margin-top: 10px;">
+                            <div style="font-size: 11.5px; font-weight: 800; color: #1e3a8a; margin-bottom: 10px; display: flex; justify-content: space-between;">
+                                <span>SINGLE STUDENT MARKS ENTRY (<span id="current-class-badge">Class: NA</span>)</span>
+                                <span style="color: #dc2626;" id="marks-limit-info">Max Limit: 20 per subject</span>
+                            </div>
+                            <div class="grid-layout" id="dynamic-subject-fields">
+                            </div>
+                        </div>
+
+                        <div style="background: #e0f2fe; padding: 10px; border-radius: 6px; border: 1px solid #0284c7; margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; font-weight: 800; color: #0369a1;">ALL 3 UNIT TESTS GRAND TOTAL COMBINED:</span>
+                            <span style="font-size: 14px; font-weight: 800; color: #1e3a8a;" id="combined-unit-grand-total">0 / 0</span>
+                        </div>
+
+                        <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                            <button class="btn btn-save" onclick="saveMarksEntry()"><i class="fa-solid fa-check"></i> Save Single Student Marks</button>
+                        </div>
+
+                        <!-- BULK CLASS MARKS ENTRY TABLE -->
+                        <div style="margin-top: 25px; background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                                <h4 style="font-size: 13px; font-weight: bold; color: #1e3a8a;"><i class="fa-solid fa-list-check"></i> BULK MARKS ENTRY FOR ENTIRE CLASS</h4>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-excel" style="background-color: #0284c7;" onclick="downloadMarksCSVTemplate()"><i class="fa-solid fa-file-csv"></i> Download CSV Template</button>
+                                    <button class="btn btn-excel" style="background-color: #10b981;" onclick="document.getElementById('bulk-marks-csv-input').click()"><i class="fa-solid fa-file-csv"></i> Upload CSV Marks</button>
+                                    <button class="btn btn-save" onclick="saveBulkMarksEntry()"><i class="fa-solid fa-floppy-disk"></i> Save Entire Class Marks</button>
+                                </div>
+                            </div>
+                            <div style="overflow-x: auto;">
+                                <table class="custom-table" id="bulk-marks-table">
+                                    <thead id="bulk-table-head"></thead>
+                                    <tbody id="bulk-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- MARKSHEET PREVIEW -->
+                        <div style="margin-top: 30px;">
+                            <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 10px;">Marksheet Preview:</h3>
+                            <div class="marksheet-template" id="marksheet-preview-container">
+                                <img src="baner.JPG" alt="School Header" class="marksheet-header-img" id="marksheet-header-img">
+                                
+                                <div class="marksheet-title-bar">PROGRESS REPORT - 2026</div>
+
+                                <div class="marksheet-info-grid">
+                                    <div>SID: <span id="ms-sid">-</span></div>
+                                    <div>CLASS: <span id="ms-class">-</span></div>
+                                    <div>NAME: <span id="ms-name">-</span></div>
+                                    <div>Roll No: <span id="ms-roll">-</span></div>
+                                    <div>FATHER'S NAME: <span id="ms-father">-</span></div>
+                                    <div>SESSION: 2026</div>
+                                </div>
+
+                                <table class="marksheet-table">
+                                    <thead>
+                                        <tr>
+                                            <th>SUBJECT</th>
+                                            <th>1st Unit Test (20)</th>
+                                            <th>2nd Unit Test (30)</th>
+                                            <th>3rd Unit Test (50)</th>
+                                            <th>Total (100)</th>
+                                            <th>Grade</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ms-table-body">
+                                    </tbody>
+                                </table>
+
+                                <div style="display: flex; justify-content: space-between; margin-top: 10px; font-weight: bold;">
+                                    <div>GRAND TOTAL: <span id="ms-grand-total">0</span></div>
+                                    <div>Result: <span id="ms-result">P</span></div>
+                                    <div>Position in Class: <span id="ms-position">-</span></div>
+                                </div>
+
+                                <div class="marksheet-footer">
+                                    <div>Signature of Class Teacher</div>
+                                    <div>Signature of Principal</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACADEMIC CARDS PREVIEW -->
+            <div id="view-cards" class="page-view" style="display: none;">
+                <div class="form-card">
+                    <div class="card-header"><span><i class="fa-solid fa-id-card"></i> Admit & ID Card Generator</span></div>
+                    <div class="card-body">
+                        <div class="grid-layout">
+                            <div>
+                                <h4 style="font-size: 12px; font-weight: 800; color: #1e40af; margin-bottom: 10px;">Generate Student Admit Card</h4>
+                                <div class="form-group">
+                                    <label>Select Class (For Bulk Action)</label>
+                                    <select id="card-class-select" onchange="onCardClassChange()">
+                                        <option value="All">All Classes</option>
+                                        <option value="Nursery">Nursery</option>
+                                        <option value="LKG">LKG</option>
+                                        <option value="UKG">UKG</option>
+                                        <option value="Std-1">Std-1</option>
+                                        <option value="Std-2">Std-2</option>
+                                        <option value="Std-3">Std-3</option>
+                                        <option value="Std-4">Std-4</option>
+                                        <option value="Std-5">Std-5</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Select Student</label>
+                                    <select id="card-student-select" onchange="previewIDCard()"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Select Exam</label>
+                                    <select id="card-exam-select">
+                                        <option value="Unit Test - 1">Unit Test - 1</option>
+                                        <option value="Unit Test - 2">Unit Test - 2</option>
+                                        <option value="Annual Examination">Annual Examination</option>
+                                    </select>
+                                </div>
+                                <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                                    <button class="btn btn-print" onclick="generateAdmitCardPDF()"><i class="fa-solid fa-print"></i> Generate Single Admit Card</button>
+                                    <button class="btn btn-save" style="background-color: #0d9488;" onclick="generateBulkAdmitCardsPDF()"><i class="fa-solid fa-file-pdf"></i> Print Bulk Admit Cards (4 Per Page Landscape)</button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 style="font-size: 12px; font-weight: 800; color: #1e40af; margin-bottom: 10px;">Student ID Card Preview</h4>
+                                
+                                <!-- ID CARD DESIGN HTML -->
+                                <div class="id-card-preview-wrapper">
+                                    <div class="id-card" id="id-card-box">
+                                        <!-- Header -->
+                                        <div class="header">
+                                            <h1>KAMAKHYAGURI RAMKRISHNA SISHU UDYAN</h1>
+                                            <p>DEBENBABU CHOWPATHI, KAMAKHYAGURI, ALIPURDUAR :: 9800354850</p>
+                                        </div>
+
+                                        <!-- Sub Title Strip -->
+                                        <div class="card-title-strip">
+                                            <h2>IDENTITY CARD 2026</h2>
+                                        </div>
+
+                                        <!-- Main Body -->
+                                        <div class="card-body">
+                                            <!-- Left Side -->
+                                            <div class="left-section">
+                                                <!-- School Logo -->
+                                                <img src="logo.JPG" alt="School Logo" class="logo" id="idcard-logo">
+                                                
+                                                <!-- Student Photo Container -->
+                                                <div class="photo-container">
+                                                    <img src="https://via.placeholder.com/92x110" alt="Student Photo" class="student-photo" id="id-card-img-element">
+                                                </div>
+                                            </div>
+
+                                            <!-- Right Side -->
+                                            <div class="right-section">
+                                                <table class="info-table">
+                                                    <tr>
+                                                        <td class="label">Name</td>
+                                                        <td class="colon">:</td>
+                                                        <td class="value val-red" id="idcard-name">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="label">Class & Sec</td>
+                                                        <td class="colon">:</td>
+                                                        <td class="value val-blue" id="idcard-class-sec">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="label">Roll No.</td>
+                                                        <td class="colon">:</td>
+                                                        <td class="value val-blue" id="idcard-roll">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="label">Guardian Name</td>
+                                                        <td class="colon">:</td>
+                                                        <td class="value val-blue" id="idcard-guardian">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="label">Address</td>
+                                                        <td class="colon">:</td>
+                                                        <td class="value val-blue" id="idcard-address">-</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <!-- Card Footer -->
+                                        <div class="card-footer">
+                                            <div class="contact-info">
+                                                Contact No &nbsp;&nbsp;: <span id="idcard-contact">-</span>
+                                            </div>
+                                            <div class="signature-section">
+                                                <span class="signature-text">Debnath</span>
+                                                <div class="principal-title">Principal</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
+                                    <button class="btn btn-save" onclick="generateIDCardPDF()"><i class="fa-solid fa-address-card"></i> Print Single ID Card</button>
+                                    <button class="btn btn-pdf" style="background-color: #0284c7;" onclick="generateBulkIDCardsPDF()"><i class="fa-solid fa-id-card"></i> Print Bulk ID Cards (8 Per Page Portrait)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- DUAL A5 LANDSCAPE RECEIPT PRINT TEMPLATE -->
+    <div id="printable-receipt-container">
+        <div class="receipt-half">
+            <div>
+                <div style="font-size: 8px; font-weight: bold; text-decoration: underline; text-align: right;">ORIGINAL COPY</div>
+                <div class="receipt-header-title">Kamakhyaguri Ramkrishna Sishu Udyan</div>
+                <div class="receipt-header-sub">Debenbabur Chowpathi :: Kamakhyaguri :: Alipurduar</div>
+                <div class="receipt-meta">
+                    <span>Receipt No: <span id="pr-receipt-1"></span></span>
+                    <span>Date: <span id="pr-date-1"></span></span>
+                </div>
+                <div class="receipt-student-info">
+                    Student Name : <span id="pr-name-1"></span><br>
+                    Class : <span id="pr-class-1"></span> &nbsp;&nbsp;|&nbsp;&nbsp; Section : <span id="pr-sec-1"></span> &nbsp;&nbsp;|&nbsp;&nbsp; Roll No : <span id="pr-roll-1"></span>
+                </div>
+                <table class="receipt-table">
+                    <thead><tr><th>Particulars Description</th><th style="text-align: right;">Amount (₹)</th></tr></thead>
+                    <tbody id="pr-items-1"></tbody>
+                </table>
+            </div>
+            <div class="receipt-footer">
+                <span>Depositor Signature</span>
+                <span>Authorized Cashier</span>
+            </div>
+        </div>
+
+        <div class="receipt-half">
+            <div>
+                <div style="font-size: 8px; font-weight: bold; text-decoration: underline; text-align: right;">OFFICE COPY</div>
+                <div class="receipt-header-title">Kamakhyaguri Ramkrishna Sishu Udyan</div>
+                <div class="receipt-header-sub">Debenbabur Chowpathi :: Kamakhyaguri :: Alipurduar</div>
+                <div class="receipt-meta">
+                    <span>Receipt No: <span id="pr-receipt-2"></span></span>
+                    <span>Date: <span id="pr-date-2"></span></span>
+                </div>
+                <div class="receipt-student-info">
+                    Student Name : <span id="pr-name-2"></span><br>
+                    Class : <span id="pr-class-2"></span> &nbsp;&nbsp;|&nbsp;&nbsp; Section : <span id="pr-sec-2"></span> &nbsp;&nbsp;|&nbsp;&nbsp; Roll No : <span id="pr-roll-2"></span>
+                </div>
+                <table class="receipt-table">
+                    <thead><tr><th>Particulars Description</th><th style="text-align: right;">Amount (₹)</th></tr></thead>
+                    <tbody id="pr-items-2"></tbody>
+                </table>
+            </div>
+            <div class="receipt-footer">
+                <span>Depositor Signature</span>
+                <span>Authorized Cashier</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom External JS -->
+    <script src="admin-script.js"></script>
+</body>
+</html>

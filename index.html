@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kamakhyaguri Ramakrishna Sishu Udyan</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <!-- Embedded CSS -->
+    <style>
+        :root {
+            --primary-blue: #0A4D68;
+            --light-blue: #088395;
+            --primary-orange: #FF6600;
+            --secondary-orange: #FF8533;
+            --pure-white: #FFFFFF;
+            --off-white: #F4F7F6;
+            --text-dark: #1E293B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--off-white);
+            color: var(--text-dark);
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background: var(--primary-blue);
+            color: var(--pure-white);
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .logo-box {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .logo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .sidebar-header h3 {
+            font-size: 16px;
+            color: var(--pure-white);
+            line-height: 1.2;
+        }
+
+        .close-btn {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: var(--pure-white);
+            font-size: 20px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .sidebar-links {
+            list-style: none;
+            padding: 20px 0;
+            flex: 1;
+        }
+
+        .sidebar-links li a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 25px;
+            color: #D1E9F6;
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .sidebar-links li a:hover, 
+        .sidebar-links li a.active {
+            background: var(--primary-orange);
+            color: var(--pure-white);
+            border-radius: 0 25px 25px 0;
+        }
+
+        .sidebar-links li a.admin-link {
+            color: #FFD700;
+            font-weight: 600;
+        }
+
+        .sidebar-links li a.admin-link:hover {
+            background: #e65c00;
+            color: var(--pure-white);
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar-footer p {
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: var(--pure-white);
+        }
+
+        .btn-sidebar-call {
+            display: block;
+            padding: 8px;
+            background: var(--primary-orange);
+            color: var(--pure-white);
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        /* Main Wrapper */
+        .main-wrapper {
+            margin-left: 260px;
+            width: calc(100% - 260px);
+            transition: 0.3s ease;
+        }
+
+        /* Header / Banner Area */
+        .top-header {
+            background: var(--pure-white);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-bottom: 3px solid var(--primary-orange);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-logo {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            background: #fff;
+        }
+
+        .header-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .toggle-btn {
+            display: none;
+            background: var(--primary-blue);
+            color: var(--pure-white);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .header-title h1 {
+            font-size: 20px;
+            color: var(--primary-blue);
+            letter-spacing: 0.5px;
+        }
+
+        .header-title p {
+            font-size: 13px;
+            color: #64748B;
+            font-weight: 500;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Live Clock Box */
+        .live-clock-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #EBF3F5;
+            color: var(--primary-blue);
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid #CBD5E1;
+        }
+
+        .live-clock-card i {
+            font-size: 20px;
+            color: var(--primary-orange);
+        }
+
+        .clock-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .clock-time {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .clock-date {
+            font-size: 11px;
+            color: #64748B;
+            font-weight: 500;
+        }
+
+        .contact-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--primary-orange);
+            color: var(--pure-white);
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .contact-card:hover {
+            background: var(--secondary-orange);
+        }
+
+        .contact-card i {
+            font-size: 22px;
+        }
+
+        .contact-card span {
+            font-size: 10px;
+            display: block;
+            text-transform: uppercase;
+        }
+
+        .admin-header-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary-blue);
+            color: var(--pure-white);
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .admin-header-btn:hover {
+            background: #063244;
+        }
+
+        /* Top Image Slider Frame */
+        .top-slider-frame {
+            margin: 20px 30px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            background: #000;
+            height: 380px;
+            border: 4px solid var(--pure-white);
+        }
+
+        .slider-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .slider-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            z-index: 10;
+        }
+
+        .slider-btn:hover {
+            background: var(--primary-orange);
+        }
+
+        .slider-btn.prev { left: 15px; }
+        .slider-btn.next { right: 15px; }
+
+        .slider-dots {
+            position: absolute;
+            bottom: 12px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .dot.active {
+            background: var(--primary-orange);
+            width: 24px;
+            border-radius: 10px;
+        }
+
+        /* Ticker Bar */
+        .ticker-box {
+            display: flex;
+            background: var(--pure-white);
+            margin: 15px 30px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #E2E8F0;
+        }
+
+        .ticker-badge {
+            background: var(--primary-blue);
+            color: var(--pure-white);
+            padding: 10px 15px;
+            font-size: 13px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .ticker-content {
+            padding: 10px;
+            width: 100%;
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        /* Common Section Title */
+        .section-title {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .section-title h2 {
+            font-size: 26px;
+            color: var(--primary-blue);
+            position: relative;
+            display: inline-block;
+            padding-bottom: 8px;
+        }
+
+        .section-title h2::after {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 3px;
+            background: var(--primary-orange);
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+
+        .section-title p {
+            font-size: 14px;
+            color: #64748B;
+            margin-top: 5px;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            margin: 20px 30px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--light-blue) 100%);
+            border-radius: 12px;
+            padding: 40px;
+            color: var(--pure-white);
+            box-shadow: 0 4px 15px rgba(10, 77, 104, 0.2);
+        }
+
+        .hero-card {
+            max-width: 650px;
+        }
+
+        .badge {
+            background: var(--primary-orange);
+            color: var(--pure-white);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .hero-card h2 {
+            font-size: 30px;
+            margin: 12px 0;
+        }
+
+        .hero-card p {
+            font-size: 15px;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 22px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            transition: 0.3s;
+        }
+
+        .btn-orange { background: var(--primary-orange); color: var(--pure-white); }
+        .btn-orange:hover { background: var(--secondary-orange); }
+
+        .btn-outline-white { border: 2px solid var(--pure-white); color: var(--pure-white); }
+        .btn-outline-white:hover { background: var(--pure-white); color: var(--primary-blue); }
+
+        /* Academic Section */
+        .academic-section {
+            margin: 30px;
+            padding: 30px;
+            background: var(--pure-white);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .academic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .academic-card {
+            border: 1px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            transition: 0.3s;
+            background: #FAFBFD;
+        }
+
+        .academic-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+
+        .academic-card i {
+            font-size: 35px;
+            color: var(--primary-orange);
+            margin-bottom: 15px;
+        }
+
+        .academic-card h3 {
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+        }
+
+        .academic-card p {
+            font-size: 13px;
+            color: #64748B;
+            line-height: 1.6;
+        }
+
+        /* Gallery Section */
+        .gallery-section {
+            margin: 30px;
+            padding: 30px;
+            background: var(--pure-white);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .gallery-item {
+            position: relative;
+            height: 150px;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 77, 104, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: 0.3s;
+            color: white;
+            font-size: 20px;
+        }
+
+        .gallery-item:hover .gallery-overlay {
+            opacity: 1;
+        }
+
+        /* Lightbox Popup */
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 800px;
+            max-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-content img {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 8px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .lightbox-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .lightbox-btn:hover {
+            background: var(--primary-orange);
+        }
+
+        .lightbox-btn.prev { left: -60px; }
+        .lightbox-btn.next { right: -60px; }
+
+        /* Our Faculty Section */
+        .faculty-section {
+            margin: 30px;
+            padding: 30px;
+            background: var(--pure-white);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .faculty-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .faculty-card {
+            background: var(--off-white);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: 0.3s;
+            border: 1px solid #E2E8F0;
+        }
+
+        .faculty-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-color: var(--primary-orange);
+        }
+
+        .faculty-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            overflow: hidden;
+            border: 3px solid var(--primary-orange);
+            background: var(--primary-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+        }
+
+        .faculty-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .faculty-card h4 {
+            color: var(--primary-blue);
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .faculty-card span {
+            font-size: 12px;
+            color: var(--primary-orange);
+            font-weight: 600;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .faculty-card p {
+            font-size: 11px;
+            color: #64748B;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { left: -260px; }
+            .main-wrapper { margin-left: 0; width: 100%; }
+            .toggle-btn { display: block; }
+            .top-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+            .header-right { width: 100%; justify-content: space-between; flex-wrap: wrap; }
+            .top-slider-frame { height: 240px; margin: 15px; }
+            .ticker-box, .hero-section, .academic-section, .gallery-section, .faculty-section { margin: 15px; }
+            .lightbox-btn.prev { left: 10px; }
+            .lightbox-btn.next { right: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-box">
+                <img src="logo.jpg" alt="KRSU Logo">
+            </div>
+            <h3>KRSU School</h3>
+            <button class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Updated Sidebar Links -->
+        <ul class="sidebar-links">
+            <li><a href="index.html" class="active"><i class="fa-solid fa-house"></i> Home</a></li>
+            <li><a href="office.html"><i class="fa-solid fa-building-columns"></i> Office</a></li>
+            <li><a href="#academic"><i class="fa-solid fa-book-open"></i> Academics</a></li>
+            <li><a href="#gallery"><i class="fa-solid fa-image"></i> Gallery</a></li>
+            <li><a href="#faculty"><i class="fa-solid fa-chalkboard-user"></i> Our Faculty</a></li>
+            <li><a href="admin.html" class="admin-link"><i class="fa-solid fa-user-shield"></i> Admin Portal</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <p>Need Admission Info?</p>
+            <a href="tel:+919800354850" class="btn-sidebar-call"><i class="fa-solid fa-phone"></i> Call Support</a>
+        </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="main-wrapper">
+        <!-- Top Header & Banner -->
+        <div class="top-header">
+            <div class="header-left">
+                <button class="toggle-btn"><i class="fa-solid fa-bars"></i></button>
+                <div class="header-logo">
+                    <img src="logo.jpg" alt="KRSU Logo">
+                </div>
+                <div class="header-title">
+                    <h1>KAMAKHYAGURI RAMAKRISHNA SISHU UDYAN</h1>
+                    <p><i class="fa-solid fa-location-dot"></i> Debenbabur Chowpathi :: Kamakhyaguri :: Alipurduar</p>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <!-- Live Date and Time Widget -->
+                <div class="live-clock-card">
+                    <i class="fa-regular fa-clock"></i>
+                    <div class="clock-text">
+                        <span class="clock-time" id="liveTime">00:00:00 AM</span>
+                        <span class="clock-date" id="liveDate">Loading Date...</span>
+                    </div>
+                </div>
+
+                <!-- Admin Header Button -->
+                <a href="admin.html" class="admin-header-btn">
+                    <i class="fa-solid fa-user-gear"></i> Admin Login
+                </a>
+            </div>
+        </div>
+
+        <!-- Today's Attendance Overview Banner -->
+        <div style="background: #ffffff; padding: 15px 25px; margin: 15px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="width: 45px; height: 45px; background: #dcfce7; color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    <i class="fa-solid fa-user-check"></i>
+                </div>
+                <div>
+                    <h4 style="margin:0; font-size: 12px; color: #1e293b;">Today's Present Students</h4>
+                    <p style="margin:0; font-size: 12px; color: #64748b;">Realtime Attendance Overview</p>
+                </div>
+            </div>
+            <div style="font-size: 24px; font-weight: 700; color: #16a34a;">
+                <span id="today-present-count">0</span>
+            </div>
+        </div>
+
+        <!-- Top Image Frame Slider -->
+        <div class="top-slider-frame">
+            <div class="slider-container" id="slider">
+                <div class="slide"><img src="1.jpg" alt="Gallery Photo 1"></div>
+                <div class="slide"><img src="2.jpeg" alt="Gallery Photo 2"></div>
+                <div class="slide"><img src="3.jpeg" alt="Gallery Photo 3"></div>
+                <div class="slide"><img src="4.jpeg" alt="Gallery Photo 4"></div>
+                <div class="slide"><img src="5.jpeg" alt="Gallery Photo 5"></div>
+                <div class="slide"><img src="6.jpeg" alt="Gallery Photo 6"></div>
+                <div class="slide"><img src="7.jpeg" alt="Gallery Photo 7"></div>
+                <div class="slide"><img src="8.jpeg" alt="Gallery Photo 8"></div>
+                <div class="slide"><img src="9.jpeg" alt="Gallery Photo 9"></div>
+                <div class="slide"><img src="10.jpeg" alt="Gallery Photo 10"></div>
+                <div class="slide"><img src="11.jpeg" alt="Gallery Photo 11"></div>
+                <div class="slide"><img src="12.jpeg" alt="Gallery Photo 12"></div>
+                <div class="slide"><img src="13.jpeg" alt="Gallery Photo 13"></div>
+                <div class="slide"><img src="14.jpeg" alt="Gallery Photo 14"></div>
+                <div class="slide"><img src="15.jpeg" alt="Gallery Photo 15"></div>
+                <div class="slide"><img src="17.jpeg" alt="Gallery Photo 17"></div>
+            </div>
+
+            <!-- Controls -->
+            <button class="slider-btn prev" id="prevBtn"><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="slider-btn next" id="nextBtn"><i class="fa-solid fa-chevron-right"></i></button>
+
+            <!-- Dots Indicator -->
+            <div class="slider-dots" id="dotsContainer"></div>
+        </div>
+
+        <!-- Ticker Box -->
+        <div class="ticker-box">
+            <div class="ticker-badge"><i class="fa-solid fa-bullhorn"></i> Notice</div>
+            <div class="ticker-content">
+                <marquee behavior="scroll" direction="left" onmouseover="this.stop();" onmouseout="this.start();">
+                    Admission open for Session 2026-2027! Contact the school office for more details.
+                </marquee>
+            </div>
+        </div>
+
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="hero-card">
+                <span class="badge">Welcome to KRSU</span>
+                <h2>Nurturing Young Minds for a Brighter Tomorrow</h2>
+                <p>Providing quality education, moral values, and overall personality development for young children in Kamakhyaguri.</p>
+                <div class="hero-buttons">
+                    <a href="#academic" class="btn btn-orange">Explore Academics</a>
+                    <a href="admin.html" class="btn btn-outline-white"><i class="fa-solid fa-lock"></i> Admin Portal</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Section -->
+        <div class="academic-section" id="academic">
+            <div class="section-title">
+                <h2>Academic Program</h2>
+                <p>Excellence in early childhood & primary education</p>
+            </div>
+            <div class="academic-grid">
+                <div class="academic-card">
+                    <i class="fa-solid fa-children"></i>
+                    <h3>Nursery to Std-5</h3>
+                    <p>Comprehensive foundation stage learning designed to build foundational skills, core concepts, and personal growth for young minds.</p>
+                </div>
+                <div class="academic-card">
+                    <i class="fa-solid fa-award"></i>
+                    <h3>Well Education Quality</h3>
+                    <p>Focusing on interactive learning, strong moral values, holistic development, and individualized attention for every student.</p>
+                </div>
+                <div class="academic-card">
+                    <i class="fa-solid fa-brain"></i>
+                    <h3>Activity-Based Learning</h3>
+                    <p>Engaging activities, creative arts, and practical exercises that spark curiosity and nurture critical thinking from an early age.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery Section -->
+        <div class="gallery-section" id="gallery">
+            <div class="section-title">
+                <h2>Photo Gallery</h2>
+                <p>Click any photo to view in full screen slider</p>
+            </div>
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- Images loaded dynamically -->
+            </div>
+        </div>
+
+        <!-- Lightbox Modal for Gallery -->
+        <div class="lightbox" id="lightbox">
+            <div class="lightbox-content">
+                <span class="lightbox-close" id="lightboxClose">&times;</span>
+                <button class="lightbox-btn prev" id="lightboxPrev"><i class="fa-solid fa-chevron-left"></i></button>
+                <img id="lightboxImg" src="" alt="Popup Image">
+                <button class="lightbox-btn next" id="lightboxNext"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Our Faculty Section -->
+        <div class="faculty-section" id="faculty">
+            <div class="section-title">
+                <h2>Our Faculty</h2>
+                <p>Meet our dedicated and caring educators</p>
+            </div>
+            <div class="faculty-grid">
+                <!-- Principal -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="16.jpeg" alt="Debdas Debnath" onerror="this.outerHTML='<i class=\'fa-solid fa-user-tie\'></i>'">
+                    </div>
+                    <h4>Debdas Debnath</h4>
+                    <span>Principal</span>
+                    <p>Hist (Hons.) M.A, D.El.Ed, B.Ed</p>
+                </div>
+
+                <!-- Faculty 1 -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="20.jpeg" alt="Debabrata Kar" onerror="this.outerHTML='<i class=\'fa-solid fa-chalkboard-user\'></i>'">
+                    </div>
+                    <h4>Debabrata Kar</h4>
+                    <span>Assistant Teacher</span>
+                    <p>M.A., Eng.(Hons.), D.El.Ed, B.Ed</p>
+                </div>
+
+                <!-- Faculty 2 -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="21.jpeg" alt="Tapas Debnath" onerror="this.outerHTML='<i class=\'fa-solid fa-chalkboard-user\'></i>'">
+                    </div>
+                    <h4>Tapas Debnath</h4>
+                    <span>Assistant Teacher</span>
+                    <p>M.A., D.El.Ed</p>
+                </div>
+
+                <!-- Faculty 3 -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="22.jpeg" alt="Prasenjit Das" onerror="this.outerHTML='<i class=\'fa-solid fa-chalkboard-user\'></i>'">
+                    </div>
+                    <h4>Prasenjit Das</h4>
+                    <span>Assistant Teacher</span>
+                    <p>B.Sc (Math), D.El.Ed</p>
+                </div>
+
+                <!-- Faculty 4 -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="23.jpeg" alt="Liton Paul" onerror="this.outerHTML='<i class=\'fa-solid fa-chalkboard-user\'></i>'">
+                    </div>
+                    <h4>Liton Paul</h4>
+                    <span>Assistant Teacher</span>
+                    <p>B.Sc (Pure Science), D.El.Ed</p>
+                </div>
+
+                <!-- Faculty 5 -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="24.jpeg" alt="Jyotibikash Debnath" onerror="this.outerHTML='<i class=\'fa-solid fa-chalkboard-user\'></i>'">
+                    </div>
+                    <h4>Jyotibikash Debnath</h4>
+                    <span>Assistant Teacher</span>
+                    <p>B.A. Hist. (Hons), M.A., D.El.Ed</p>
+                </div>
+
+                <!-- Faculty 6 -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="25.jpeg" alt="Mithun Debnath" onerror="this.outerHTML='<i class=\'fa-solid fa-chalkboard-user\'></i>'">
+                    </div>
+                    <h4>Mithun Debnath</h4>
+                    <span>Assistant Teacher</span>
+                    <p>B.A. Hist. (Hons), D.El.Ed</p>
+                </div>
+
+                <!-- Faculty 7 -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="26.jpeg" alt="Dipankar Debnath" onerror="this.outerHTML='<i class=\'fa-solid fa-chalkboard-user\'></i>'">
+                    </div>
+                    <h4>Dipankar Debnath</h4>
+                    <span>Assistant Teacher</span>
+                    <p>M.A. (Double), Geo (Hons.), D.El.Ed, B.Ed</p>
+                </div>
+
+                <!-- Faculty 8 -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="27.jpeg" alt="Sukanta Debnath" onerror="this.outerHTML='<i class=\'fa-solid fa-chalkboard-user\'></i>'">
+                    </div>
+                    <h4>Sukanta Debnath</h4>
+                    <span>Assistant Teacher</span>
+                    <p>M.A. Geography (Hons.), B.Ed</p>
+                </div>
+
+                <!-- Faculty 9 -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="28.jpeg" alt="Debojit Mahato" onerror="this.outerHTML='<i class=\'fa-solid fa-palette\'></i>'">
+                    </div>
+                    <h4>Debojit Mahato</h4>
+                    <span>Art Teacher</span>
+                    <p>Fine Arts Specialist</p>
+                </div>
+
+                <!-- Faculty 10 -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="29.jpeg" alt="Madhusudan Adhikary" onerror="this.outerHTML='<i class=\'fa-solid fa-chalkboard-user\'></i>'">
+                    </div>
+                    <h4>Madhusudan Adhikary</h4>
+                    <span>Assistant Teacher</span>
+                    <p>M.A.</p>
+                </div>
+
+                <!-- Faculty 11 -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="30.jpeg" alt="Jibanananda Das" onerror="this.outerHTML='<i class=\'fa-solid fa-chalkboard-user\'></i>'">
+                    </div>
+                    <h4>Jibanananda Das</h4>
+                    <span>Assistant Teacher</span>
+                    <p>M.A. Eng. (Hons)</p>
+                </div>
+
+                <!-- Faculty 12 -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="31.jpg" alt="Abinash Biswas" onerror="this.outerHTML='<i class=\'fa-solid fa-chalkboard-user\'></i>'">
+                    </div>
+                    <h4>Abinash Biswas</h4>
+                    <span>Assistant Teacher</span>
+                    <p>M.Sc Zoology (Hons.)</p>
+                </div>
+
+                <!-- Faculty 13 -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="32.jpeg" alt="Dwip Barman" onerror="this.outerHTML='<i class=\'fa-solid fa-chalkboard-user\'></i>'">
+                    </div>
+                    <h4>Dwip Barman</h4>
+                    <span>Assistant Teacher</span>
+                    <p>B.Sc Math. (Hons.)</p>
+                </div>
+
+                <!-- Faculty 14 -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="33.jpeg" alt="Niranjan Debnath" onerror="this.outerHTML='<i class=\'fa-solid fa-chalkboard-user\'></i>'">
+                    </div>
+                    <h4>Niranjan Debnath</h4>
+                    <span>Assistant Teacher</span>
+                    <p>M.A. Beng. (Hons.)</p>
+                </div>
+
+                <!-- Faculty 15 -->
+                <div class="faculty-card">
+                    <div class="faculty-img">
+                        <img src="34.jpeg" alt="Faculty Member" onerror="this.outerHTML='<i class=\'fa-solid fa-chalkboard-user\'></i>'">
+                    </div>
+                    <h4>Faculty Member</h4>
+                    <span>Assistant Teacher</span>
+                    <p>Primary Department</p>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Embedded JavaScript -->
+    <script>
+        // Live Date & Time Script
+        function updateClock() {
+            const now = new Date();
+            
+            // Format Time
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            let seconds = now.getSeconds();
+            let ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12; // 0 format -> 12
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            seconds = seconds < 10 ? '0' + seconds : seconds;
+            
+            const timeString = `${hours}:${minutes}:${seconds} ${ampm}`;
+            
+            // Format Date
+            const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+            const dateString = now.toLocaleDateString('en-US', options);
+
+            document.getElementById('liveTime').textContent = timeString;
+            document.getElementById('liveDate').textContent = dateString;
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Top Slider Logic
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slider = document.getElementById('slider');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        slides.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.classList.add('dot');
+            if (index === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => goToSlide(index));
+            dotsContainer.appendChild(dot);
+        });
+
+        const dots = document.querySelectorAll('.dot');
+
+        function updateSlider() {
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+            dots.forEach(dot => dot.classList.remove('active'));
+            dots[currentSlide].classList.add('active');
+        }
+
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) {
+                currentSlide = slides.length - 1;
+            } else if (currentSlide >= slides.length) {
+                currentSlide = 0;
+            }
+            updateSlider();
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateSlider();
+        }
+
+        document.getElementById('prevBtn').addEventListener('click', () => moveSlide(-1));
+        document.getElementById('nextBtn').addEventListener('click', () => moveSlide(1));
+
+        setInterval(() => {
+            moveSlide(1);
+        }, 3500);
+
+        // Gallery Grid Setup (1 to 14 Images)
+        const galleryList = [
+            '1.jpg', '2.jpeg', '3.jpeg', '4.jpeg', '5.jpeg', '6.jpeg', '7.jpeg',
+            '8.jpeg', '9.jpeg', '10.jpeg', '11.jpeg', '12.jpeg', '13.jpeg', '14.jpeg'
+        ];
+
+        const galleryGrid = document.getElementById('galleryGrid');
+        galleryList.forEach((src, index) => {
+            const item = document.createElement('div');
+            item.className = 'gallery-item';
+            item.onclick = () => openLightbox(index);
+            item.innerHTML = `
+                <img src="${src}" alt="Gallery ${index + 1}">
+                <div class="gallery-overlay"><i class="fa-solid fa-magnifying-glass-plus"></i></div>
+            `;
+            galleryGrid.appendChild(item);
+        });
+
+        // Lightbox Logic
+        let currentGalleryIndex = 0;
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+
+        function openLightbox(index) {
+            currentGalleryIndex = index;
+            lightboxImg.src = galleryList[currentGalleryIndex];
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+        }
+
+        function changeLightboxImg(dir) {
+            currentGalleryIndex += dir;
+            if (currentGalleryIndex < 0) {
+                currentGalleryIndex = galleryList.length - 1;
+            } else if (currentGalleryIndex >= galleryList.length) {
+                currentGalleryIndex = 0;
+            }
+            lightboxImg.src = galleryList[currentGalleryIndex];
+        }
+
+        // Lightbox Event Listeners
+        document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+        document.getElementById('lightboxPrev').addEventListener('click', () => changeLightboxImg(-1));
+        document.getElementById('lightboxNext').addEventListener('click', () => changeLightboxImg(1));
+
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                closeLightbox();
+            }
+        });
+
+        // Firebase Logic to Fetch Today's Attendance
+        const firebaseConfig = {
+            apiKey: "AIzaSyCzJ4axa9wV9lwy0fy1xn8wAqWsuqbJ93E",
+            authDomain: "school-management-74254.firebaseapp.com",
+            databaseURL: "https://school-management-74254-default-rtdb.firebaseio.com",
+            projectId: "school-management-74254",
+            storageBucket: "school-management-74254.firebasestorage.app",
+            messagingSenderId: "991469098027",
+            appId: "1:991469098027:web:e5a7386712eee671e8c66e"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const dbIndex = firebase.database();
+
+        // Get Today's Date YYYY-MM-DD
+        const todayStr = new Date().toISOString().slice(0, 10);
+
+        dbIndex.ref(`attendance/${todayStr}`).on('value', (snapshot) => {
+            const todayData = snapshot.val() || {};
+            let presentCount = 0;
+            for (let id in todayData) {
+                if (todayData[id] === 'P' || todayData[id] === 'Present' || (typeof todayData[id] === 'object' && todayData[id].status === 'P')) {
+                    presentCount++;
+                }
+            }
+            const countEl = document.getElementById('today-present-count');
+            if (countEl) countEl.innerText = presentCount;
+        });
+    </script>
+</body>
+</html>
+
+AIzaSyCzJ4axa9wV9lwy0fy1xn8wAqWsuqbJ93E
